@@ -4,6 +4,10 @@ Ce jeu est une version "console" du jeu Age Of WAr. Le but du jeu est de détrui
 
 # Comment exécuter
 
-Placez vous dans le répertoire du jeu, et taper les commandes suivantes :
+Dans un premier temps, placez vous dans le répertoire du makefile. Compilez à l'aide de la commande :
+
 > make
-> ./ageOfWar
+
+Exécutez le programme avec la commande suivante :
+
+>./ageOfWar
