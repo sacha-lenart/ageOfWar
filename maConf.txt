@@ -1,0 +1,12 @@
+X	Fantassin	Archer		Catapulte
+Prix	10		12		20
+Vie	10		8		12
+Att	4		3		6
+PortMin	1		1		2
+Portee	1		3		3
+Zone	1		1		2
+
+VieJoueur	100
+OrParTour	8
+LimiteTour	100
+TailleMap	15

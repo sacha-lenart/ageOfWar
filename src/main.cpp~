@@ -1,0 +1,158 @@
+#include <iostream>
+#include <string>
+#include <fstream> // ofstream
+#include <stdlib.h> // atoi
+#include <time.h> // time
+
+#include "../header/Plateau.h"
+#include "../header/Catapulte.h"
+#include "../header/Fantassin.h"
+#include "../header/Archer.h"
+#include "../header/Humain.h"
+#include "../header/IndicePlateauException.h"
+#include "../header/ValeurNegativeException.h"
+#include "../header/Configuration.h"
+
+using namespace std;
+
+int main(int argc, char * argv[])
+{
+    // initialisation mode de jeu
+    cout << "\n**********************************************************************************************\n"
+		 << "***************************************** AGE OF WAR *****************************************\n"
+		 << "**********************************************************************************************\n" ;
+    cout << "\nBonjour, vous avez le choix entre deux modes.\n"
+         << "  - mode 1 : il faut appuyer sur ENTRER pour avancer dans la partie.\n"
+         << "  - mode 2 : le jeu se deroule tout seul.\n\n"
+         << "Selectionnez un mode de jeu. 1. mode 1, 2. mode 2   ";
+    char reponse;
+    cin >> reponse;
+    int mode = 0;
+    while (mode == 0) {
+        if (reponse == '1') mode = 1;
+        else if (reponse == '2') mode = 2;
+        if (mode == 0) {
+            cout << "Erreur, veuillez taper 1 ou 2. 1. mode 1, 2. mode 2   ";
+            cin >> reponse;
+        }
+    }
+
+    cout << "\nVoulez-vous jouer contre l'IA ? 1. Oui, 2. Non   ";
+    cin >> reponse;
+
+    // On charge la configuration
+    Configuration conf;
+    if(argc >= 2)
+    {
+        string confS(argv[1]);
+        conf = Configuration(confS);
+    }
+    else
+        conf = Configuration();
+
+
+    // initialisation plateau et joueur
+    Plateau p(conf);
+    string no;
+    Joueur ja = Joueur(true, 0, p.getConf()->vieJoueur, p);
+    if(reponse == '1') {
+        cout << "\n\nQuel est votre nom ? ";
+        cin >> no;
+    }
+    else
+        p.setJoueurA(ja);
+
+    Humain jh = Humain(true, 0, p.getConf()->vieJoueur, p, no);
+    Joueur jb(false, 0, p.getConf()->vieJoueur, p);
+
+    p.setJoueurB(jb);
+    if (reponse == '1')
+		p.setJoueurA(jh);
+	else p.setJoueurA(ja);
+
+    cout << "\n\nLa partie commence !!!" << endl;
+
+    bool continuer = true;
+    string str;
+    srand(time(NULL)); // initialisation de rand
+
+    while(continuer)
+    {
+		cout << "\n\n******************** TOUR " << p.getTour() << " ********************\n" << endl;
+		p.getFichier() << "\n\n******************** TOUR " << p.getTour() << " ********************\n" << endl;
+
+        p.incrementerTour();
+
+		cout << "\n\n\n    Au joueur A de jouer.";
+		p.getFichier() << "\n\n\n    Au joueur A de jouer.\n";
+        if (mode == 1) {
+			if (p.getTour() == 1) cout << " (appuyer sur ENTRER)";
+			cout << " ('s' pour stopper la partie)   ";
+			getline(cin, str);
+			if (str == "s") continuer = false;
+		}
+		cout << endl;
+
+        if(reponse != '1')
+        {
+			if (continuer) {
+				try { ja.setArgent(ja.getArgent()+p.getConf()->orParTour); }
+				catch(ValeurNegativeException e) {cout << e.what() << endl;}
+				p.action1Joueur(ja);
+				if(continuer) p.action2Joueur(ja); continuer = !p.getFini();
+				if(continuer) p.action3Joueur(ja); continuer = !p.getFini();
+				if(continuer) ja.creerUnite(); continuer = !p.getFini();
+			}
+
+        }
+        else
+        {
+			try { jh.setArgent(jh.getArgent()+p.getConf()->orParTour); }
+			catch(ValeurNegativeException e) {cout << e.what() << endl;}
+			p.action1Joueur(jh);
+			if(continuer) p.action2Joueur(jh); continuer = !p.getFini();
+			if(continuer) p.action3Joueur(jh); continuer = !p.getFini();
+			if(continuer) jh.creerUnite(); continuer = !p.getFini();
+        }
+
+        if (continuer) {
+
+			cout << "\n\n    Au joueur B de jouer.";
+			p.getFichier() << "\n\n    Au joueur B de jouer.\n";
+			if (mode == 1) {
+				if (p.getTour() == 1) cout << " (appuyer sur ENTRER)";
+                cout << " ('s' pour stopper la partie)   ";
+                if (reponse == '1') cin.ignore();
+				getline(cin, str);
+				if (str == "s") continuer = false;
+			}
+			cout << endl;
+
+			if (continuer) {
+				try { jb.setArgent(jb.getArgent()+8); }
+				catch(ValeurNegativeException e) {cout << e.what() << endl;}
+				p.action1Joueur(jb);
+				if(continuer) p.action2Joueur(jb); continuer = !p.getFini();
+				if(continuer) p.action3Joueur(jb); continuer = !p.getFini();
+				if(continuer) jb.creerUnite(); continuer = !p.getFini();
+			}
+
+			if ((p.getTour() >= p.getConf()->limiteTour) && (p.getJoueurA()->getVie()>=0) && (p.getJoueurA()->getVie()>=0)) {
+				cout << "\n100 tours atteints ! Il n'y a pas de vainqueur" << endl;
+				continuer = false;
+			}
+		}
+    }
+
+	if (p.getJoueurA()->getVie()==0)
+		cout << "\nLe " << *p.getJoueurB() << " gagne la partie !!!" << endl;
+	else if (p.getJoueurB()->getVie()==0) {
+		if (reponse == '2')
+			cout << "\nLe " << *p.getJoueurA() << " gagne la partie !!!" << endl;
+		else cout << "\nBravo " << no << ", vous avez gagne la partie !!!" << endl;
+	}
+
+    cout << "\n\nAppel des destructeurs :" << endl;
+
+    return 0;
+}
